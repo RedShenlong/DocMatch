@@ -1,0 +1,39 @@
+{
+  "name": "@docmatch/builder",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": {
+    "docmatch-build": "./bin/docmatch-build.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "web:prepare": "node scripts-prepare-web.mjs",
+    "web:dev": "vite",
+    "web:build": "node scripts-prepare-web.mjs && vite build",
+    "build": "node scripts-prepare-web.mjs && vite build",
+    "profiles": "tsx src/node/build-fixture-profiles.ts",
+    "accuracy": "tsx src/node/accuracy.ts",
+    "negatives": "tsx src/node/negatives.ts",
+    "cli": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@docmatch/fixtures": "workspace:^",
+    "@napi-rs/canvas": "^1.1.1",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "ajv": "8",
+    "docmatch": "workspace:*",
+    "onnxruntime-web": "1.20.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "4.8.69",
+    "tesseract.js": "5",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@types/node": "22",
+    "vite": "5"
+  },
+  "description": "Generador de perfiles DocMatch (app web sin conexión y CLI docmatch-build)"
+}

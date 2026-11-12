@@ -1,0 +1,14 @@
+dist
+node_modules
+pnpm-lock.yaml
+packages/fixtures/out
+packages/model
+*.md
+dist-web
+public
+playwright-report
+test-results
+*.jsonc
+packages/fixtures/fonts
+packages/core/assets
+DocMatch_prompt_Claude_Code.md

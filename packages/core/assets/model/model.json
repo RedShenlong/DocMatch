@@ -1,0 +1,49 @@
+{
+ "modelId": "docmatch-encoder",
+ "modelVersion": "1.0.0",
+ "input": {
+  "width": 288,
+  "height": 384,
+  "name": "pixels",
+  "range": [
+   -1,
+   1
+  ],
+  "channels": 1
+ },
+ "output": {
+  "name": "embedding",
+  "dim": 128
+ },
+ "quantization": "int8-qdq-per-channel",
+ "int8_vs_fp32_cosine": 0.9726,
+ "int8_vs_fp32_cosine_min": 0.85185,
+ "sizeBytes": 1593496,
+ "fp32SizeBytes": 5029217,
+ "sha256": "282330b2ad56004902724f82120b23723e089677615a6487591ace6fc934cc50",
+ "trainedEpoch": 31,
+ "holdoutMetrics": {
+  "top1": 0.9679,
+  "auc": 0.9996,
+  "tpr_at_fpr1": 1,
+  "cousin_win": 0.0324,
+  "pos_p05": 0.9387,
+  "neg_p99": 0.5935,
+  "foreign_p95": 0.4755
+ },
+ "license": "Apache-2.0",
+ "file": "model.fp32.onnx",
+ "variants": {
+  "fp32": {
+   "file": "model.fp32.onnx",
+   "sizeBytes": 5029217,
+   "sha256": "a4b016304044e454143dab582424ab8677df5eaf02ed4d4206e73550045aea44"
+  },
+  "int8": {
+   "file": "model.int8.onnx",
+   "sizeBytes": 1593496,
+   "sha256": "282330b2ad56004902724f82120b23723e089677615a6487591ace6fc934cc50"
+  }
+ },
+ "note": "Por defecto se usa FP32 (4,8 MiB): la versi\u00f3n INT8 pierde separaci\u00f3n en hold-out (ver eval.json). Para usar INT8, cambia \"file\" a model.int8.onnx. Para WebGPU: compila con DOCMATCH_WEBGPU=1 (copia ort.webgpu) y a\u00f1ade \"webgpuModel\": \"model.fp32.onnx\"."
+}

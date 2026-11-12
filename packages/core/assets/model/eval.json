@@ -1,0 +1,21 @@
+{
+ "pytorch": {
+  "top1": 0.9508,
+  "auc": 0.9986,
+  "tpr_at_fpr1": 0.9956,
+  "cousin_win": 0.0435,
+  "pos_p05": 0.9275,
+  "neg_p99": 0.5952,
+  "foreign_p95": 0.5156
+ },
+ "onnx": {
+  "top1": 0.9513,
+  "auc": 0.9955,
+  "tpr_at_fpr1": 0.9912,
+  "cousin_win": 0.0469,
+  "pos_p05": 0.829,
+  "neg_p99": 0.6039,
+  "foreign_p95": 0.5366
+ },
+ "onnx_vs_torch_cos": 0.96665
+}

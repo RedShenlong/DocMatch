@@ -1,0 +1,78 @@
+{
+  "name": "docmatch",
+  "version": "0.0.0",
+  "description": "Comprueba en el navegador, sin enviar nada a ningún servidor, que un PDF es la plantilla oficial pedida y tiene los datos obligatorios.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/docmatch.js",
+  "module": "./dist/docmatch.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/docmatch.js"
+    },
+    "./auto": "./dist/docmatch.min.js",
+    "./internal": "./src/internal.ts",
+    "./node": "./src/node/env.ts",
+    "./package.json": "./package.json",
+    "./browser": "./src/browser/env.ts"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "sideEffects": [
+    "./src/auto.ts",
+    "./dist/docmatch.min.js"
+  ],
+  "scripts": {
+    "build": "vite build && vite build --config vite.iife.config.ts && vite build --config vite.worker.config.ts && node scripts/copy-assets.mjs && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "size": "size-limit",
+    "prepack": "node -e \"for (const f of ['README.md','LICENSE','THIRD_PARTY_NOTICES.md']) require('fs').copyFileSync('../../'+f,f)\""
+  },
+  "size-limit": [
+    {
+      "name": "core ESM (sin pdf.js/ocr/onnx)",
+      "path": "dist/docmatch.js",
+      "gzip": true,
+      "limit": "50 KB"
+    },
+    {
+      "name": "core IIFE (sin pdf.js/ocr/onnx)",
+      "path": "dist/docmatch.min.js",
+      "gzip": true,
+      "limit": "50 KB"
+    }
+  ],
+  "devDependencies": {
+    "@napi-rs/canvas": "^1.1.1",
+    "@size-limit/file": "^11.1.6",
+    "@types/node": "22",
+    "onnxruntime-web": "1.20.1",
+    "pdfjs-dist": "4.8.69",
+    "size-limit": "^11.1.6",
+    "tesseract.js": "5",
+    "tesseract.js-core": "5",
+    "vite": "^5.4.11"
+  },
+  "keywords": [
+    "pdf",
+    "form",
+    "validation",
+    "ocr",
+    "privacy",
+    "browser",
+    "dni",
+    "spain",
+    "administración"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "private": false
+}

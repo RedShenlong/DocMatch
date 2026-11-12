@@ -1,0 +1,66 @@
+// Ejemplo comentado de perfil DocMatch (schemaVersion 1). Valores recortados para que se lea bien.
+// Esquema completo: packages/builder/src/lib/profile.schema.json
+{
+  "schemaVersion": 1,                       // versión del formato
+  "id": "organismo-ejemplo-licencia",       // identificador estable (a-z, 0-9, ., _, -)
+  "name": "Solicitud de licencia de armas", // se usa en los mensajes al usuario
+  "version": "1.0.0",                       // versión de la plantilla/perfil
+  "issuer": "Organismo de Ejemplo",         // opcional
+  "pageCount": 2,
+  "pages": [{ "width": 595.28, "height": 841.89 }, { "width": 595.28, "height": 841.89 }], // puntos PDF
+
+  // Texto fijo de la plantilla. Caja relativa (0–1) con origen arriba-izquierda.
+  "anchors": [
+    { "page": 0, "text": "SOLICITUD DE LICENCIA DE ARMAS", "norm": "sollcltud de llcencla de armas",
+      "box": { "x": 0.0806, "y": 0.1127, "w": 0.4321, "h": 0.0178 },
+      "distinctive": true, "weight": 4 },      // título: distintiva (obligatoria) y con más peso
+    { "page": 0, "text": "Modelo EJ-101", "norm": "modelo ej lol", "box": { "x": 0.81, "y": 0.047, "w": 0.09, "h": 0.011 },
+      "distinctive": true, "weight": 2 },      // código del modelo
+    { "page": 0, "text": "DNI/NIE:", "norm": "dnl nle", "box": { "x": 0.0806, "y": 0.2588, "w": 0.0566, "h": 0.0107 } }
+    // … una por cada línea de texto fijo
+  ],
+
+  // Campos AcroForm de la plantilla (si los tiene).
+  "acroFields": [{ "name": "dni", "type": "text", "page": 0 }],
+
+  "fields": [
+    {
+      "key": "dni",                  // clave estable (aparece en result.missingFields/invalidFields)
+      "label": "DNI/NIE:",           // texto que verá el usuario: «Falta el campo DNI/NIE»
+      "type": "dni_nie",             // text|date|dni_nie|nif_cif|iban|email|phone|number|postal_code|checkbox|signature
+      "required": true,
+      "page": 0,
+      "box": { "x": 0.1453, "y": 0.2531, "w": 0.2366, "h": 0.0214 },  // región del valor
+      "anchor": 7,                   // índice del ancla-etiqueta
+      "pattern": "^[0-9XYZ]",        // opcional: expresión regular adicional
+      "acroName": "dni",             // opcional: campo AcroForm equivalente (tiene prioridad)
+      "blank": { "ink": 0.0 }        // tinta de la región en la plantilla vacía (para escaneos)
+    },
+    { "key": "firma", "label": "Firma del solicitante:", "type": "signature", "required": true, "page": 1,
+      "box": { "x": 0.25, "y": 0.27, "w": 0.67, "h": 0.074 },
+      "blank": { "ink": 0, "sig": { "w": "<base64 float32 ×128>", "b": -1.2 } } } // clasificador de firma sobre el encoder
+  ],
+
+  // Huella visual (la genera el builder automáticamente).
+  "visual": {
+    "modelId": "docmatch-encoder", "modelVersion": "1.0.0",        // encoder con el que se calculó
+    "input": { "width": 288, "height": 384 },
+    "pages": [{ "dhash": "ffc0…", "prototypes": ["<base64 float16 ×128>"] }],
+    "head": { "inDim": 128, "outDim": 32, "weights": "<base64 float32 32×128>", "prototypes": [["<base64 float16 ×32>"]] },
+    "simRange": [0.41, 0.93]                                        // [negativos p95, positivos p50]
+  },
+
+  // Calibración automática (umbrales y métricas sobre datos sintéticos de validación).
+  "calibration": {
+    "fusion": {
+      "digital": { "features": ["anchors", "distinctive", "layout", "pages", "phash", "vision"], "w": [4.5, 5, 2, 1, 0, 0], "b": -8.2 },
+      "scan":    { "features": ["anchors", "distinctive", "layout", "pages", "phash", "vision"], "w": [3.5, 4.5, 1.5, 0.8, 0.3, 2.5], "b": -7 }
+    },
+    "ink": { "text": 0.04, "checkbox": 0.08, "signature": 0.01 },
+    "metrics": { "scan": { "fpr": 0, "fnr": 0.02, "n": 96 }, "fields": { "fpr": 0.02, "fnr": 0.01, "n": 900 }, "estimatedAccuracy": 0.99 }
+  },
+  "modelId": "docmatch-encoder", "modelVersion": "1.0.0",
+  "expect": { "digitalSignature": false, "csv": false },   // avisar si faltan firma electrónica / CSV
+  "thresholds": { "match": 0.6, "distinctive": 0.55, "anchorSim": 0.72, "ocrConfidence": 75, "textChars": 40 },
+  "generator": { "name": "docmatch-builder", "version": "0.1.0", "date": "2026-11-12" }
+}

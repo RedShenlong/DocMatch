@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docmatch.example/schema/profile-v1.json",
+  "title": "Perfil de plantilla DocMatch",
+  "description": "Describe una plantilla oficial concreta: texto fijo (anclas), campos y huella visual. No debe contener datos personales.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "version",
+    "pageCount",
+    "pages",
+    "anchors",
+    "fields",
+    "thresholds"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "relBox": {
+      "type": "object",
+      "description": "Caja en coordenadas relativas a la página (0–1), origen arriba-izquierda.",
+      "required": ["x", "y", "w", "h"],
+      "additionalProperties": false,
+      "properties": {
+        "x": { "type": "number", "minimum": -0.05, "maximum": 1.05 },
+        "y": { "type": "number", "minimum": -0.05, "maximum": 1.05 },
+        "w": { "type": "number", "minimum": 0, "maximum": 1.1 },
+        "h": { "type": "number", "minimum": 0, "maximum": 1.1 }
+      }
+    },
+    "b64": { "type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$" },
+    "fusion": {
+      "type": "object",
+      "required": ["w", "b", "features"],
+      "additionalProperties": false,
+      "properties": {
+        "w": { "type": "array", "items": { "type": "number" } },
+        "b": { "type": "number" },
+        "features": {
+          "type": "array",
+          "items": { "enum": ["anchors", "distinctive", "layout", "pages", "phash", "vision"] }
+        }
+      }
+    },
+    "rates": {
+      "type": "object",
+      "properties": { "fpr": { "type": "number" }, "fnr": { "type": "number" }, "n": { "type": "integer" } }
+    }
+  },
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,99}$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "version": { "type": "string" },
+    "issuer": { "type": "string" },
+    "pageCount": { "type": "integer", "minimum": 1, "maximum": 50 },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["width", "height"],
+        "properties": { "width": { "type": "number" }, "height": { "type": "number" } }
+      }
+    },
+    "anchors": {
+      "type": "array",
+      "description": "Líneas de texto fijo de la plantilla.",
+      "items": {
+        "type": "object",
+        "required": ["page", "text", "norm", "box"],
+        "additionalProperties": false,
+        "properties": {
+          "page": { "type": "integer", "minimum": 0 },
+          "text": { "type": "string" },
+          "norm": {
+            "type": "string",
+            "description": "Texto normalizado (minúsculas, sin acentos ni puntuación, confusiones de OCR unificadas)."
+          },
+          "box": { "$ref": "#/$defs/relBox" },
+          "distinctive": {
+            "type": "boolean",
+            "description": "Título, código del modelo o frase que identifica el formulario."
+          },
+          "weight": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "acroFields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "page"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "enum": ["text", "checkbox", "radio", "choice", "signature", "button"] },
+          "page": { "type": "integer" }
+        }
+      }
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "label", "type", "required", "page", "box"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "label": { "type": "string" },
+          "type": {
+            "enum": [
+              "text",
+              "date",
+              "dni_nie",
+              "nif_cif",
+              "iban",
+              "email",
+              "phone",
+              "number",
+              "postal_code",
+              "checkbox",
+              "signature"
+            ]
+          },
+          "required": { "type": "boolean" },
+          "page": { "type": "integer", "minimum": 0 },
+          "box": { "$ref": "#/$defs/relBox" },
+          "anchor": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Índice del ancla (etiqueta) de la que depende."
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Expresión regular adicional que debe cumplir el valor."
+          },
+          "acroName": { "type": "string" },
+          "blank": {
+            "type": "object",
+            "properties": {
+              "ink": {
+                "type": "number",
+                "description": "Densidad de tinta de la región en la plantilla vacía."
+              },
+              "emb": { "$ref": "#/$defs/b64" },
+              "sig": {
+                "type": "object",
+                "required": ["w", "b"],
+                "properties": { "w": { "$ref": "#/$defs/b64" }, "b": { "type": "number" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "visual": {
+      "type": "object",
+      "required": ["modelId", "modelVersion", "input", "pages"],
+      "properties": {
+        "modelId": { "type": "string" },
+        "modelVersion": { "type": "string" },
+        "input": {
+          "type": "object",
+          "properties": { "width": { "type": "integer" }, "height": { "type": "integer" } }
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dhash", "prototypes"],
+            "properties": {
+              "dhash": { "type": "string", "pattern": "^[0-9a-f]+$" },
+              "prototypes": { "type": "array", "items": { "$ref": "#/$defs/b64" } }
+            }
+          }
+        },
+        "head": {
+          "type": "object",
+          "required": ["inDim", "outDim", "weights", "prototypes"],
+          "properties": {
+            "inDim": { "type": "integer" },
+            "outDim": { "type": "integer" },
+            "weights": { "$ref": "#/$defs/b64" },
+            "prototypes": {
+              "type": "array",
+              "items": { "type": "array", "items": { "$ref": "#/$defs/b64" } }
+            }
+          }
+        },
+        "simRange": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 }
+      }
+    },
+    "calibration": {
+      "type": "object",
+      "properties": {
+        "fusion": {
+          "type": "object",
+          "properties": { "digital": { "$ref": "#/$defs/fusion" }, "scan": { "$ref": "#/$defs/fusion" } }
+        },
+        "ink": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "number" },
+            "checkbox": { "type": "number" },
+            "signature": { "type": "number" }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "digital": { "$ref": "#/$defs/rates" },
+            "scan": { "$ref": "#/$defs/rates" },
+            "fields": { "$ref": "#/$defs/rates" },
+            "estimatedAccuracy": { "type": "number" }
+          }
+        }
+      }
+    },
+    "modelId": { "type": "string" },
+    "modelVersion": { "type": "string" },
+    "expect": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": { "digitalSignature": { "type": "boolean" }, "csv": { "type": "boolean" } }
+    },
+    "thresholds": {
+      "type": "object",
+      "properties": {
+        "match": { "type": "number", "minimum": 0, "maximum": 1 },
+        "distinctive": { "type": "number", "minimum": 0, "maximum": 1 },
+        "anchorSim": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ocrConfidence": { "type": "number", "minimum": 0, "maximum": 100 },
+        "textChars": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "date": { "type": "string" }
+      }
+    }
+  }
+}

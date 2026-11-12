@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.onnx binary
+*.traineddata binary
+*.ttf binary
+*.pdf binary
+*.png binary

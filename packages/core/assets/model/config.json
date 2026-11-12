@@ -1,0 +1,15 @@
+{
+  "data": "data/train",
+  "holdout": "data/holdout",
+  "out": "runs/v1",
+  "epochs": 40,
+  "steps": 60,
+  "P": 48,
+  "K": 4,
+  "lr": 0.002,
+  "wd": 0.05,
+  "temperature": 0.1,
+  "pretrained": false,
+  "seed": 1234,
+  "device": "cuda"
+}

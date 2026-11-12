@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DocMatch — demostración</title>
+    <!-- Integración: 1) el script… -->
+    <script src="docmatch/docmatch.min.js" defer></script>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 1rem;
+        color: #1c1c1c;
+      }
+      fieldset {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin: 1rem 0;
+        padding: 1rem;
+      }
+      legend {
+        font-weight: 700;
+        padding: 0 0.3rem;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.3rem;
+      }
+      .note {
+        font-size: 0.85rem;
+        color: #555;
+      }
+      code {
+        background: #f3f3f3;
+        padding: 0 0.2rem;
+      }
+      #log {
+        font:
+          0.8rem/1.4 ui-monospace,
+          monospace;
+        background: #f6f6f6;
+        padding: 0.5rem;
+        max-height: 14rem;
+        overflow: auto;
+        white-space: pre-wrap;
+      }
+      .samples a {
+        margin-right: 0.6rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>DocMatch</h1>
+    <p>
+      Esta página comprueba los PDF <strong>en tu navegador</strong>: el archivo no se envía a ningún
+      servidor. Prueba con los archivos de ejemplo (todos ficticios) o con los tuyos.
+    </p>
+    <p class="note">DocMatch evita errores honestos al adjuntar documentos; no es un sistema antifraude.</p>
+
+    <form
+      id="f1"
+      onsubmit="
+        event.preventDefault();
+        document.getElementById('sent').textContent = 'Formulario enviado (simulado).';
+      "
+    >
+      <fieldset>
+        <legend>Solicitud de licencia de armas</legend>
+        <label for="lic"
+          >Adjunta el formulario oficial «Solicitud de licencia de armas» (modelo EJ-101) relleno y
+          firmado</label
+        >
+        <!-- …y 2) el atributo. Modo «avisar»: nunca impide enviar. -->
+        <input
+          id="lic"
+          name="lic"
+          type="file"
+          accept="application/pdf"
+          data-docmatch="profiles/organismo-ejemplo-licencia.json"
+        />
+        <p class="samples note">
+          Ejemplos:
+          <a href="samples/lic-rellena-11.pdf" download>correcto</a>
+          <a href="samples/lic-sin-dni.pdf" download>sin DNI</a>
+          <a href="samples/lic-dni-y-fecha-invalidos.pdf" download>DNI y fecha inválidos</a>
+          <a href="samples/primo-rellena.pdf" download>otro formulario parecido</a>
+          <a href="samples/ajeno-factura.pdf" download>factura</a>
+          <a href="samples/scan-lic-rellena-41.pdf" download>escaneado</a>
+          <a href="samples/hand-lic-completa-0.pdf" download>a mano</a>
+          <a href="samples/hand-lic-sin-firma-0.pdf" download>a mano sin firma</a>
+          <a href="samples/especial-cifrado.pdf" download>protegido</a>
+        </p>
+      </fieldset>
+      <button type="submit">Enviar</button> <span id="sent" role="status"></span>
+    </form>
+
+    <form
+      id="f2"
+      onsubmit="
+        event.preventDefault();
+        document.getElementById('sent2').textContent = 'Formulario enviado (simulado).';
+      "
+    >
+      <fieldset>
+        <legend>Certificado de empadronamiento (modo «bloquear»)</legend>
+        <label for="emp"
+          >Certificado de empadronamiento (vale el de cualquiera de los dos ayuntamientos)</label
+        >
+        <input
+          id="emp"
+          name="emp"
+          type="file"
+          accept="application/pdf"
+          data-docmatch="profiles/ayto-ejemplo-empadronamiento.json,profiles/ayto-muestra-empadronamiento.json"
+          data-docmatch-mode="block"
+        />
+        <p class="samples note">
+          Ejemplos:
+          <a href="samples/emp-a-emitido.pdf" download>ayuntamiento A</a>
+          <a href="samples/emp-b-emitido.pdf" download>ayuntamiento B</a>
+          <a href="samples/emp-a-sin-csv-ni-firma.pdf" download>sin CSV ni firma electrónica</a>
+          <a href="samples/emp-input-con-licencia.pdf" download>otro documento</a>
+        </p>
+      </fieldset>
+      <button type="submit">Enviar</button> <span id="sent2" role="status"></span>
+    </form>
+
+    <fieldset lang="en">
+      <legend>Programmatic API (English messages, no default UI)</legend>
+      <label for="api">Any PDF</label>
+      <input id="api" type="file" accept="application/pdf" />
+      <div id="log" aria-live="polite"></div>
+    </fieldset>
+
+    <script type="module">
+      // API programática: DocMatch.load + check (no toca el DOM) y eventos docmatch:*.
+      const log = (m) => (document.getElementById('log').textContent += m + '\n');
+      addEventListener('load', async () => {
+        const dm = await DocMatch.load(['profiles/organismo-ejemplo-licencia.json'], { lang: 'en' });
+        document.getElementById('api').addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          log(`checking ${file.name}…`);
+          const r = await dm.check(file);
+          log(
+            JSON.stringify(
+              {
+                status: r.status,
+                score: +r.score.toFixed(3),
+                missing: r.missingFields.map((f) => f.key),
+                invalid: r.invalidFields,
+                warnings: r.warnings,
+                messages: r.messages,
+                ms: Math.round(r.timings.total),
+              },
+              null,
+              1,
+            ),
+          );
+        });
+      });
+      document.addEventListener('docmatch:result', (e) =>
+        log(`[event] docmatch:result #${e.target.id}: ${e.detail.status}`),
+      );
+    </script>
+  </body>
+</html>
